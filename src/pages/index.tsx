@@ -1,57 +1,66 @@
+import { useState } from 'react';
 import styles from './index.module.css';
 
 const Home = () => {
+  const board = [...Array(9)].map((_, y) => [...Array(9)].map((_, x) => ((y + x + 1) % 13) - 1));
+  const zeroBoard = [...Array(9)].map(() => [...Array(9)].map(() => 0));
+  const [userInputs, setUserInputs] = useState(zeroBoard);
+  const [bombMap, setBombMap] = useState(zeroBoard);
+  const newBombMap = structuredClone(bombMap);
+  const newUserInputs = structuredClone(userInputs);
+
+  const isFirst = () => !bombMap.flat().includes(1);
+
+  const clickL = (x: number, y: number) => {
+    if (isFirst()) {
+      const setUpBombMap = () => {
+        newBombMap[y][x] = 1;
+
+        while (newBombMap.flat().filter((cell) => cell === 1).length < 10 + 1) {
+          const nx = Math.floor(Math.random() * 9);
+          const ny = Math.floor(Math.random() * 9);
+          newBombMap[ny][nx] = 1;
+        }
+        newBombMap[y][x] = 0;
+      };
+      setUpBombMap();
+      setBombMap(newBombMap);
+    }
+    const userInput = userInputs[y][x];
+
+    if (userInput === 0) {
+      newUserInputs[y][x] = 1;
+      setUserInputs(newUserInputs);
+    }
+  };
+
+  const clickR = (x: number, y: number) => {
+    document.getElementsByTagName('html')[0].oncontextmenu = () => false;
+
+    const userInput = userInputs[y][x];
+
+    if (userInput === 1) return;
+
+    const newUserInput = (Math.max(0, userInput - 1) + 2) % 4;
+    newUserInputs[y][x] = newUserInput;
+    setUserInputs(newUserInputs);
+  };
+
   return (
     <div className={styles.container}>
-      <main className={styles.main}>
-        <h1 className={styles.title}>
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
-
-        <p className={styles.description}>
-          Get started by editing{' '}
-          <code className={styles.code} style={{ backgroundColor: '#fafafa' }}>
-            pages/index.js
-          </code>
-        </p>
-
-        <div className={styles.grid}>
-          <a className={styles.card} href="https://nextjs.org/docs">
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a className={styles.card} href="https://nextjs.org/learn">
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a className={styles.card} href="https://github.com/vercel/next.js/tree/master/examples">
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a
-            className={styles.card}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          >
-            <h2>Deploy &rarr;</h2>
-            <p>Instantly deploy your Next.js site to a public URL with Vercel.</p>
-          </a>
-        </div>
-      </main>
-      <footer className={styles.footer}>
-        <a
-          href="https://vercel.com?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Powered by{' '}
-          <span className={styles.logo}>
-            <img src="vercel.svg" alt="Vercel Logo" width={72} height={16} />
-          </span>
-        </a>
-      </footer>
+      <div className={styles.board}>
+        {board.map((row, y) =>
+          row.map((number, x) => (
+            <div
+              className={number === -1 ? styles.stone : styles.number}
+              style={{ backgroundPositionX: 30 - 30 * number }}
+              key={`${y}-${x}`}
+              onClick={() => clickL(x, y)}
+              onContextMenu={() => clickR(x, y)}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 };
