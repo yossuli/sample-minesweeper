@@ -11,7 +11,11 @@ const Home = () => {
 
   const isFirst = () => !bombMap.flat().includes(1);
 
+  const isFailed = () =>
+    bombMap.flat().filter((bomb, index) => bomb === 1 && userInputs.flat()[index] === 1).length > 0;
+
   const clickL = (x: number, y: number) => {
+    if (isFailed()) return;
     if (isFirst()) {
       const setUpBombMap = () => {
         newBombMap[y][x] = 1;
@@ -72,7 +76,15 @@ const Home = () => {
       }
     })
   );
-
+  if (isFailed()) {
+    bombMap.forEach((row, j) =>
+      row.forEach((userInput, i) => {
+        if (userInput === 1) {
+          board[j][i] = 11;
+        }
+      })
+    );
+  }
   return (
     <div className={styles.container}>
       <div className={styles.board}>
