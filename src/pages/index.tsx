@@ -2,7 +2,7 @@ import { useState } from 'react';
 import styles from './index.module.css';
 
 const Home = () => {
-  const board = [...Array(9)].map((_, y) => [...Array(9)].map((_, x) => ((y + x + 1) % 13) - 1));
+  const board = [...Array(9)].map(() => [...Array(9)].map(() => -1));
   const zeroBoard = [...Array(9)].map(() => [...Array(9)].map(() => 0));
   const [userInputs, setUserInputs] = useState(zeroBoard);
   const [bombMap, setBombMap] = useState(zeroBoard);
@@ -45,6 +45,33 @@ const Home = () => {
     newUserInputs[y][x] = newUserInput;
     setUserInputs(newUserInputs);
   };
+
+  const checkAround8 = (x: number, y: number) => {
+    board[y][x] = [-1, 0, 1]
+      .map((dx) =>
+        [-1, 0, 1].map((dy) => bombMap[y + dy] !== undefined && bombMap[y + dy][x + dx] === 1)
+      )
+      .flat()
+      .filter(Boolean).length;
+
+    if (board[y][x] === 0) {
+      [-1, 0, 1].forEach((dx) =>
+        [-1, 0, 1].forEach((dy) => {
+          if (board[y + dy]?.[x + dx] === -1) {
+            checkAround8(x + dx, y + dy);
+          }
+        })
+      );
+    }
+  };
+
+  userInputs.forEach((row, j) =>
+    row.forEach((userInput, i) => {
+      if (userInput === 1) {
+        checkAround8(i, j);
+      }
+    })
+  );
 
   return (
     <div className={styles.container}>
